@@ -55,9 +55,7 @@ public class MealsUtil {
         meals.forEach(meal -> caloriesSumByDate.merge(meal.getDate(), meal.getCalories(), Integer::sum));
 
         List<MealTo> mealsTo = new ArrayList<>();
-        meals.forEach(meal -> {
-                mealsTo.add(createTo(meal, caloriesSumByDate.get(meal.getDate()) > caloriesPerDay));
-        });
+        meals.forEach(meal -> mealsTo.add(createTo(meal, caloriesSumByDate.get(meal.getDate()) > caloriesPerDay)));
         return mealsTo;
     }
 
