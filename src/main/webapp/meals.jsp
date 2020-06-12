@@ -47,9 +47,15 @@
 </style>
 
 
-
+<p><a href="meals?action=add">Add User</a></p>
 <table class="meal_table" border="1">
-    <tr><th>Дата/Время</th><th>Описание</th><th>Калории</th></tr>
+    <tr>
+        <th>Дата/Время</th>
+        <th>Описание</th>
+        <th>Калории</th>
+        <th></th>
+        <th></th>
+    </tr>
     <c:set var="meals" value="${requestScope.mealsList}"/>
 
     <c:forEach var="meal" items="${meals}">
@@ -57,9 +63,10 @@
             <td><javatime:format pattern="dd-MM-yyyy HH:mm" value="${meal.dateTime}"/></td>
             <td><c:out value="${meal.description}" /></td>
             <td><c:out value="${meal.calories}" /></td>
+            <td><a href="meals?action=update&id=<c:out value="${meal.id}"/>">Update</a></td>
+            <td><a href="meals?action=delete&id=<c:out value="${meal.id}"/>">Delete</a></td>
         </tr>
     </c:forEach>
 </table>
-
 </body>
 </html>

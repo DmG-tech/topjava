@@ -2,7 +2,8 @@ package ru.javawebinar.topjava.web;
 
 import org.slf4j.Logger;
 import ru.javawebinar.topjava.model.Meal;
-import ru.javawebinar.topjava.model.MealTo;
+import ru.javawebinar.topjava.repository.MealRepository;
+import ru.javawebinar.topjava.repository.MemoryMealRepository;
 import ru.javawebinar.topjava.util.MealsUtil;
 
 import javax.servlet.ServletException;
@@ -12,35 +13,64 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.Month;
-import java.util.Arrays;
-import java.util.List;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
 public class MealServlet extends HttpServlet {
     private static final Logger log = getLogger(MealServlet.class);
+    private MealRepository repository;
 
-    private List<MealTo> initList() {
-        List<Meal> meals = Arrays.asList(
-                new Meal(LocalDateTime.of(2020, Month.JANUARY, 30, 10, 0), "Завтрак", 500),
-                new Meal(LocalDateTime.of(2020, Month.JANUARY, 30, 13, 0), "Обед", 1000),
-                new Meal(LocalDateTime.of(2020, Month.JANUARY, 30, 20, 0), "Ужин", 500),
-                new Meal(LocalDateTime.of(2020, Month.JANUARY, 31, 0, 0), "Еда на граничное значение", 100),
-                new Meal(LocalDateTime.of(2020, Month.JANUARY, 31, 10, 0), "Завтрак", 1000),
-                new Meal(LocalDateTime.of(2020, Month.JANUARY, 31, 13, 0), "Обед", 500),
-                new Meal(LocalDateTime.of(2020, Month.JANUARY, 31, 20, 0), "Ужин", 410)
-        );
-
-        return MealsUtil.filteredByStreams(meals, LocalTime.of(0, 1), LocalTime.of(23, 58), 2000);
+    public MealServlet() {
+        super();
+        this.repository = new MemoryMealRepository();
     }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         log.debug("GET request to meals");
 
-        request.setAttribute("mealsList", initList());
-        request.getRequestDispatcher("meals.jsp").forward(request, response);
+        String action = request.getParameter("action");
+
+        if (action == null) {
+            log.debug("get all");
+            request.setAttribute("mealsList", MealsUtil.getAllWithExcess(repository.getAll(), 2000));
+            request.getRequestDispatcher("meals.jsp").forward(request, response);
+        } else if (action.equals("delete")) {
+            int id = getId(request);
+            log.debug("delete: " + id);
+            repository.delete(id);
+            request.setAttribute("mealsList", MealsUtil.getAllWithExcess(repository.getAll(), 2000));
+            request.getRequestDispatcher("meals.jsp").forward(request, response);
+        } else if (action.equals("update")) {
+            int id = getId(request);
+            log.debug("update: " + id);
+            Meal meal = repository.get(id);
+            request.setAttribute("meal", meal);
+            request.getRequestDispatcher("editMeal.jsp").forward(request, response);
+        } else if (action.equals("add")) {
+            log.debug("create meal");
+            request.setAttribute("meal", new Meal(LocalDateTime.now(), "New meal", 0));
+            request.getRequestDispatcher("editMeal.jsp").forward(request, response);
+        }
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String date = req.getParameter("dateTime");
+        String description = req.getParameter("description");
+        String calories = req.getParameter("calories");
+        String id = req.getParameter("id");
+
+        Meal meal = new Meal(LocalDateTime.parse(date), description, Integer.parseInt(calories));
+        if (id != null && !id.isEmpty()) {
+            meal.setId(Integer.parseInt(id));
+        }
+        repository.save(meal);
+        req.setAttribute("mealsList", MealsUtil.getAllWithExcess(repository.getAll(), 2000));
+        req.getRequestDispatcher("meals.jsp").forward(req, resp);
+    }
+
+    private int getId(HttpServletRequest request) {
+        return Integer.parseInt(request.getParameter("id"));
     }
 }
