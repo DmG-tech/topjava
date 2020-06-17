@@ -49,6 +49,27 @@
             </tr>
         </c:forEach>
     </table>
+
+    <form novalidate method="post" action="meals?action=filter">
+        <dl>
+            <dt>startDate:</dt>
+            <dd><input type="date" value="" name="startDate" required></dd>
+        </dl>
+        <dl>
+            <dt>endDate:</dt>
+            <dd><input type="date" value="" name="endDate" required></dd>
+        </dl>
+        <dl>
+            <dt>startTime:</dt>
+            <dd><input type="time" value="" name="startTime" required></dd>
+        </dl>
+        <dl>
+            <dt>endTime:</dt>
+            <dd><input type="time" value="" name="endTime" required></dd>
+        </dl>
+        <button type="submit">Apply</button>
+    </form>
+
 </section>
 </body>
 </html>
